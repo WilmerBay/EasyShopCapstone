@@ -8,6 +8,13 @@ public class ShoppingCart
 {
     private Map<Integer, ShoppingCartItem> items = new HashMap<>();
 
+    public ShoppingCart() {
+    }
+
+    public ShoppingCart(Map<Integer, ShoppingCartItem> items) {
+        this.items = items;
+    }
+
     public Map<Integer, ShoppingCartItem> getItems()
     {
         return items;
@@ -36,11 +43,10 @@ public class ShoppingCart
     public BigDecimal getTotal()
     {
         BigDecimal total = items.values()
-                                .stream()
-                                .map(i -> i.getLineTotal())
-                                .reduce( BigDecimal.ZERO, (lineTotal, subTotal) -> subTotal.add(lineTotal));
+                .stream()
+                .map(i -> i.getLineTotal())
+                .reduce(BigDecimal.ZERO, (lineTotal, subTotal) -> subTotal.add(lineTotal));
 
         return total;
     }
-
 }

@@ -16,3 +16,4 @@ public interface ProductDao
     List<Product> getByCategoryId(int categoryId);
 
 }
+

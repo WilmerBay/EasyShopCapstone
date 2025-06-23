@@ -10,6 +10,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -30,15 +31,22 @@ public class AuthenticationController {
 
     private final TokenProvider tokenProvider;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
-    private UserDao userDao;
-    private ProfileDao profileDao;
+    private final UserDao userDao;
+    private final ProfileDao profileDao;
+    private final PasswordEncoder passwordEncoder;
 
-    public AuthenticationController(TokenProvider tokenProvider, AuthenticationManagerBuilder authenticationManagerBuilder, UserDao userDao, ProfileDao profileDao) {
+    public AuthenticationController(TokenProvider tokenProvider,
+                                    AuthenticationManagerBuilder authenticationManagerBuilder,
+                                    UserDao userDao,
+                                    ProfileDao profileDao,
+                                    PasswordEncoder passwordEncoder) {
         this.tokenProvider = tokenProvider;
         this.authenticationManagerBuilder = authenticationManagerBuilder;
         this.userDao = userDao;
         this.profileDao = profileDao;
+        this.passwordEncoder = passwordEncoder;
     }
+
 
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     public ResponseEntity<LoginResponseDto> login(@Valid @RequestBody LoginDto loginDto) {
@@ -79,7 +87,8 @@ public class AuthenticationController {
             }
 
             // create user
-            User user = userDao.create(new User(0, newUser.getUsername(), newUser.getPassword(), newUser.getRole()));
+            User user = userDao.create(new User(0, newUser.getUsername(), passwordEncoder.encode(newUser.getPassword()), newUser.getRole()));
+
 
             // create profile
             Profile profile = new Profile();

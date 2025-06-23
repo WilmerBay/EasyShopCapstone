@@ -1,79 +1,99 @@
 package org.yearup.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.prepost.PreAuthorize; // For role-based access
+import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 import org.yearup.data.CategoryDao;
-import org.yearup.data.ProductDao;
 import org.yearup.models.Category;
-import org.yearup.models.Product;
 
 import java.util.List;
 
-// ✅ This class is now a REST controller
 @RestController
-
-// ✅ Base URL for this controller: http://localhost:8080/categories
 @RequestMapping("/categories")
-
-// ✅ Allow cross-origin requests from frontend (like http://127.0.0.1:5500)
 @CrossOrigin
 public class CategoriesController
 {
     private final CategoryDao categoryDao;
-    private final ProductDao productDao;
 
-    // ✅ Automatically inject DAO dependencies via constructor
     @Autowired
-    public CategoriesController(CategoryDao categoryDao, ProductDao productDao)
+    public CategoriesController(CategoryDao categoryDao)
     {
         this.categoryDao = categoryDao;
-        this.productDao = productDao;
     }
 
-    // ✅ GET /categories — anyone can view all categories
     @GetMapping
+    @PreAuthorize("permitAll()")
     public List<Category> getAll()
     {
-        return categoryDao.getAllCategories(); // Retrieves all categories from DB
+        try
+        {
+            return categoryDao.getAllCategories();
+        }
+        catch (Exception e)
+        {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to get categories.");
+        }
     }
 
-    // ✅ GET /categories/{id} — fetch a single category by ID
     @GetMapping("{id}")
+    @PreAuthorize("permitAll()")
     public Category getById(@PathVariable int id)
     {
-        return categoryDao.getById(id); // Get specific category by ID
+        try
+        {
+            Category category = categoryDao.getById(id);
+            if (category == null)
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found.");
+
+            return category;
+        }
+        catch (Exception e)
+        {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to get category.");
+        }
     }
 
-    // ✅ GET /categories/{id}/products — fetch all products in this category
-    @GetMapping("{categoryId}/products")
-    public List<Product> getProductsById(@PathVariable int categoryId)
-    {
-        return productDao.getByCategoryId(categoryId); // Filtered by categoryId
-    }
-
-    // ✅ POST /categories — create a new category (admin only)
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')") // Requires ADMIN role
-    public Category addCategory(@RequestBody Category category)
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public Category add(@RequestBody Category category)
     {
-        categoryDao.create(category); // Save new category
-        return category;
+        try
+        {
+            return categoryDao.create(category);
+        }
+        catch (Exception e)
+        {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to create category.");
+        }
     }
 
-    // ✅ PUT /categories/{id} — update category (admin only)
     @PutMapping("{id}")
-    @PreAuthorize("hasRole('ADMIN')") // Requires ADMIN role
-    public void updateCategory(@PathVariable int id, @RequestBody Category category)
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public void update(@PathVariable int id, @RequestBody Category category)
     {
-        categoryDao.update(id, category); // Update category by ID
+        try
+        {
+            categoryDao.update(id, category);
+        }
+        catch (Exception e)
+        {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to update category.");
+        }
     }
 
-    // ✅ DELETE /categories/{id} — delete category (admin only)
     @DeleteMapping("{id}")
-    @PreAuthorize("hasRole('ADMIN')") // Requires ADMIN role
-    public void deleteCategory(@PathVariable int id)
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public void delete(@PathVariable int id)
     {
-        categoryDao.delete(id); // Delete category by ID
+        try
+        {
+            categoryDao.delete(id);
+        }
+        catch (Exception e)
+        {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to delete category.");
+        }
     }
 }
