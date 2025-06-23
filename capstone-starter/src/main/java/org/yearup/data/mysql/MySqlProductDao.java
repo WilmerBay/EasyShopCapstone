@@ -23,10 +23,16 @@ public class MySqlProductDao extends MySqlDaoBase implements ProductDao
     {
         List<Product> products = new ArrayList<>();
 
-        String sql = "SELECT * FROM products " +
+        /*String sql = "SELECT * FROM products " +
                 "WHERE (category_id = ? OR ? = -1) " +
                 "   AND (price <= ? OR ? = -1) " +
-                "   AND (color = ? OR ? = '') ";
+                "   AND (color = ? OR ? = '') "; this will not categorize */
+        String sql = "SELECT * FROM products " +
+                "WHERE (? = -1 OR category_id = ?) " +
+                "  AND (? = -1 OR price >= ?) " +
+                "  AND (? = -1 OR price <= ?) " +
+                "  AND (? = '' OR color = ?)";
+
 
         categoryId = categoryId == null ? -1 : categoryId;
         minPrice = minPrice == null ? new BigDecimal("-1") : minPrice;
@@ -35,13 +41,23 @@ public class MySqlProductDao extends MySqlDaoBase implements ProductDao
 
         try (Connection connection = getConnection())
         {
-            PreparedStatement statement = connection.prepareStatement(sql);
+            /*PreparedStatement statement = connection.prepareStatement(sql);
             statement.setInt(1, categoryId);
             statement.setInt(2, categoryId);
             statement.setBigDecimal(3, minPrice);
             statement.setBigDecimal(4, minPrice);
             statement.setString(5, color);
-            statement.setString(6, color);
+            statement.setString(6, color); no maxPrice here originally */
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setInt(1, categoryId);
+            statement.setInt(2, categoryId);
+            statement.setBigDecimal(3, minPrice);
+            statement.setBigDecimal(4, minPrice);
+            statement.setBigDecimal(5, maxPrice);
+            statement.setBigDecimal(6, maxPrice);
+            statement.setString(7, color);
+            statement.setString(8, color);
+
 
             ResultSet row = statement.executeQuery();
 
@@ -207,6 +223,12 @@ public class MySqlProductDao extends MySqlDaoBase implements ProductDao
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public List<Product> getByCategoryId(int categoryId) {
+        return listByCategoryId(categoryId); // adjusted list of()  empty task to list by category id
+    }
+
 
     protected static Product mapRow(ResultSet row) throws SQLException
     {

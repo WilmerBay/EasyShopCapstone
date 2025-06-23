@@ -1,8 +1,8 @@
 package org.yearup.controllers;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize; // For role-based access
+import org.springframework.web.bind.annotation.*;
 import org.yearup.data.CategoryDao;
 import org.yearup.data.ProductDao;
 import org.yearup.models.Category;
@@ -10,61 +10,70 @@ import org.yearup.models.Product;
 
 import java.util.List;
 
-// add the annotations to make this a REST controller
-// add the annotation to make this controller the endpoint for the following url
-    // http://localhost:8080/categories
-// add annotation to allow cross site origin requests
+// ✅ This class is now a REST controller
+@RestController
+
+// ✅ Base URL for this controller: http://localhost:8080/categories
+@RequestMapping("/categories")
+
+// ✅ Allow cross-origin requests from frontend (like http://127.0.0.1:5500)
+@CrossOrigin
 public class CategoriesController
 {
-    private CategoryDao categoryDao;
-    private ProductDao productDao;
+    private final CategoryDao categoryDao;
+    private final ProductDao productDao;
 
+    // ✅ Automatically inject DAO dependencies via constructor
+    @Autowired
+    public CategoriesController(CategoryDao categoryDao, ProductDao productDao)
+    {
+        this.categoryDao = categoryDao;
+        this.productDao = productDao;
+    }
 
-    // create an Autowired controller to inject the categoryDao and ProductDao
-
-    // add the appropriate annotation for a get action
+    // ✅ GET /categories — anyone can view all categories
+    @GetMapping
     public List<Category> getAll()
     {
-        // find and return all categories
-        return null;
+        return categoryDao.getAllCategories(); // Retrieves all categories from DB
     }
 
-    // add the appropriate annotation for a get action
+    // ✅ GET /categories/{id} — fetch a single category by ID
+    @GetMapping("{id}")
     public Category getById(@PathVariable int id)
     {
-        // get the category by id
-        return null;
+        return categoryDao.getById(id); // Get specific category by ID
     }
 
-    // the url to return all products in category 1 would look like this
-    // https://localhost:8080/categories/1/products
+    // ✅ GET /categories/{id}/products — fetch all products in this category
     @GetMapping("{categoryId}/products")
     public List<Product> getProductsById(@PathVariable int categoryId)
     {
-        // get a list of product by categoryId
-        return null;
+        return productDao.getByCategoryId(categoryId); // Filtered by categoryId
     }
 
-    // add annotation to call this method for a POST action
-    // add annotation to ensure that only an ADMIN can call this function
+    // ✅ POST /categories — create a new category (admin only)
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')") // Requires ADMIN role
     public Category addCategory(@RequestBody Category category)
     {
-        // insert the category
-        return null;
+        categoryDao.create(category); // Save new category
+        return category;
     }
 
-    // add annotation to call this method for a PUT (update) action - the url path must include the categoryId
-    // add annotation to ensure that only an ADMIN can call this function
+    // ✅ PUT /categories/{id} — update category (admin only)
+    @PutMapping("{id}")
+    @PreAuthorize("hasRole('ADMIN')") // Requires ADMIN role
     public void updateCategory(@PathVariable int id, @RequestBody Category category)
     {
-        // update the category by id
+        categoryDao.update(id, category); // Update category by ID
     }
 
-
-    // add annotation to call this method for a DELETE action - the url path must include the categoryId
-    // add annotation to ensure that only an ADMIN can call this function
+    // ✅ DELETE /categories/{id} — delete category (admin only)
+    @DeleteMapping("{id}")
+    @PreAuthorize("hasRole('ADMIN')") // Requires ADMIN role
     public void deleteCategory(@PathVariable int id)
     {
-        // delete the category by id
+        categoryDao.delete(id); // Delete category by ID
     }
 }
