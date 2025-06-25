@@ -57,6 +57,7 @@ public class CategoriesController
 
     @PostMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @ResponseStatus(HttpStatus.CREATED) // this
     public Category add(@RequestBody Category category)
     {
         try
@@ -68,6 +69,7 @@ public class CategoriesController
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to create category.");
         }
     }
+
 
     @PutMapping("{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -85,6 +87,7 @@ public class CategoriesController
 
     @DeleteMapping("{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @ResponseStatus(HttpStatus.NO_CONTENT) // this
     public void delete(@PathVariable int id)
     {
         try
@@ -96,4 +99,5 @@ public class CategoriesController
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to delete category.");
         }
     }
+
 }
