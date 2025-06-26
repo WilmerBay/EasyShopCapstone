@@ -44,16 +44,23 @@ public class CategoriesController
         try
         {
             Category category = categoryDao.getById(id);
+
             if (category == null)
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Category not found.");
 
             return category;
+        }
+        catch (ResponseStatusException ex)
+        {
+            // rethrow 404
+            throw ex;
         }
         catch (Exception e)
         {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to get category.");
         }
     }
+
 
     @PostMapping
     @PreAuthorize("hasRole('ROLE_ADMIN')")
