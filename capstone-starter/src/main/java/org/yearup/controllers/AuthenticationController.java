@@ -77,31 +77,39 @@ public class AuthenticationController {
     @ResponseStatus(HttpStatus.CREATED)
     @RequestMapping(value = "/register", method = RequestMethod.POST)
     public ResponseEntity<User> register(@Valid @RequestBody RegisterUserDto newUser) {
-
-        try
-        {
+        try {
             boolean exists = userDao.exists(newUser.getUsername());
-            if (exists)
-            {
+            if (exists) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User Already Exists.");
             }
 
-            // create user
-            User user = userDao.create(new User(0, newUser.getUsername(), passwordEncoder.encode(newUser.getPassword()), newUser.getRole()));
+            // Log input
+            System.out.println("Registering user: " + newUser.getUsername());
 
+            // Only encode in DAO, not here
+            User user = userDao.create(new User(0, newUser.getUsername(), newUser.getPassword(), newUser.getRole()));
 
-            // create profile
+            // Log user after insert
+            System.out.println("Created user ID: " + user.getId());
+
+            // Check for valid user ID
+            if (user.getId() <= 0) {
+                throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "User ID was not generated.");
+            }
+
+            // Create blank profile for user
             Profile profile = new Profile();
             profile.setUserId(user.getId());
+
             profileDao.create(profile);
 
             return new ResponseEntity<>(user, HttpStatus.CREATED);
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
+            e.printStackTrace(); // Print stacktrace for dev visibility
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Oops... our bad.");
         }
     }
+
 
 }
 
